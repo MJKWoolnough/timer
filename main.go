@@ -5,6 +5,8 @@ import (
 	"log"
 	"unsafe"
 
+	"github.com/BurntSushi/xgb"
+	"github.com/BurntSushi/xgb/screensaver"
 	"github.com/MJKWoolnough/engine"
 	_ "github.com/MJKWoolnough/engine/graphics/gles2"
 	_ "github.com/MJKWoolnough/engine/windows/glfw32"
@@ -69,6 +71,12 @@ func run() error {
 	}); err != nil {
 		return err
 	}
+	conn, err := xgb.NewConn()
+	if err != nil {
+		return err
+	}
+	screensaver.Init(conn)
+	screensaver.Suspend(conn, true)
 	gles2.ClearColor(0, 0, 0, 1)
 	pid := CreateProgram(vs, fs)
 	oid = gles2.GetUniformLocation(pid, &offsetName[0])
@@ -76,6 +84,8 @@ func run() error {
 	cid = gles2.GetAttribLocation(pid, &posName[0])
 	gles2.UseProgram(pid)
 	engine.Loop(loop)
+	screensaver.Suspend(conn, false)
+	conn.Close()
 	return engine.Uninit()
 }
 
