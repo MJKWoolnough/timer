@@ -23,10 +23,10 @@ var (
 		"uniform vec2 scale;" +
 		"attribute vec2 pos;" +
 		"void main() {" +
-		"	gl_Position = vec4(offset + (pos * scale), 0, 1);" +
+		"	gl_Position = vec4((offset + pos) * scale, 0, 1);" +
 		"}")
 	fs = []byte("void main() {" +
-		"	gl_FragColor = vec4(1, 0, 0, 1);" +
+		"	gl_FragColor = vec4(1, 1, 1, 1);" +
 		"}")
 	offsetName = []byte("offset\x00")
 	scaleName  = []byte("scale\x00")
@@ -91,11 +91,6 @@ const (
 	BarBottom
 )
 
-const (
-	barWidth  = 1
-	barHeight = 1
-)
-
 var (
 	digits = [10]byte{
 		BarTop | BarTopLeft | BarTopRight | BarBottomLeft | BarBottomRight | BarBottom,
@@ -126,16 +121,16 @@ var (
 		{bHeight, bWidth - bHeight*tWidth},
 	}
 	bars = [7]Bar{
-		{XY{0, 0}, &horizontalBar},              //top
-		{XY{0, 0}, &verticalBar},                //top-left
-		{XY{1 - barHeight, 0}, &verticalBar},    //top-right
-		{XY{0, 1 - barWidth/2}, &horizontalBar}, //middle
-		{XY{0, 1}, &verticalBar},                //bottom-left
-		{XY{1 - barHeight, 1}, &verticalBar},    //bottom-right
-		{XY{0, 2 - barWidth/2}, &horizontalBar}, //bottom
+		{XY{tWidth, 2 * bWidth}, &horizontalBar},    //top
+		{XY{0, bWidth + tWidth}, &verticalBar},      //top-left
+		{XY{bWidth, bWidth + tWidth}, &verticalBar}, //top-right
+		{XY{tWidth, bWidth}, &horizontalBar},        //middle
+		{XY{0, tWidth}, &verticalBar},               //bottom-left
+		{XY{bWidth, tWidth}, &verticalBar},          //bottom-right
+		{XY{tWidth, 0}, &horizontalBar},             //bottom
 	}
-	scale  = XY{0.1, 0.1}
-	offset = XY{-0.5, -0.5}
+	scale  = XY{0.02, 0.03}
+	offset = XY{0, 0}
 )
 
 const (
@@ -161,21 +156,39 @@ func loop(w, h int, t float64) {
 	}
 	gles2.Clear(gles2.COLOR_BUFFER_BIT)
 
-	gles2.Uniform2f(oid, offset[0], offset[1]+r*bHeight/20)
 	gles2.Uniform2f(sid, scale[0], scale[1]*r)
 
-	vertices := &verticalBar
-	gles2.VertexAttribPointer(uint32(cid), 2, gles2.FLOAT, false, 2*4, unsafe.Pointer(vertices))
-	gles2.EnableVertexAttribArray(0)
+	gap := bWidth + tWidth + 1
 
-	gles2.DrawArrays(gles2.TRIANGLE_STRIP, 0, int32(len(vertices)))
-	//gles2.DrawArrays(gles2.TRIANGLE_STRIP, int32(t)%4, 3)
-	vertices = &horizontalBar
-	gles2.Uniform2f(oid, offset[0]+bHeight/20+0.001, offset[1]-0.001*r)
-	gles2.VertexAttribPointer(uint32(cid), 2, gles2.FLOAT, false, 2*4, unsafe.Pointer(vertices))
-	gles2.EnableVertexAttribArray(0)
+	sec := int(t) % (360000)
 
-	gles2.DrawArrays(gles2.TRIANGLE_STRIP, 0, int32(len(vertices)))
+	hours := sec / 3600
+	minutes := sec / 60 % 60
+	seconds := sec % 60
+
+	displayDigit(hours/10%10, -20-2*gap)
+	displayDigit(hours%10, -20-gap)
+
+	displayDigit(minutes/10%10, -gap)
+	displayDigit(minutes%10, 0)
+
+	displayDigit(seconds/10%10, 20)
+	displayDigit(seconds%10, 20+gap)
+
+}
+
+func displayDigit(p int, offsetX float32) {
+	for n, b := range bars {
+		if digits[p]&(1<<uint(n)) > 0 {
+			gles2.Uniform2f(oid, offset[0]+offsetX+b.Offset[0], offset[1]+b.Offset[1])
+			vertices := b.Bar
+			gles2.VertexAttribPointer(uint32(cid), 2, gles2.FLOAT, false, 2*4, unsafe.Pointer(vertices))
+			gles2.EnableVertexAttribArray(0)
+
+			gles2.DrawArrays(gles2.TRIANGLE_STRIP, 0, int32(len(vertices)))
+			//gles2.DrawArrays(gles2.TRIANGLE_STRIP, int32(t)%4, 3)
+		}
+	}
 }
 
 //http://blog.db-in.com/all-about-opengl-es-2-x-part-2/
