@@ -9,7 +9,7 @@ import (
 	"github.com/BurntSushi/xgb/screensaver"
 	"github.com/MJKWoolnough/engine"
 	_ "github.com/MJKWoolnough/engine/graphics/gles2"
-	_ "github.com/MJKWoolnough/engine/windows/sdl"
+	_ "github.com/MJKWoolnough/engine/windows/glut"
 	"github.com/go-gl/gl/v3.1/gles2"
 )
 
