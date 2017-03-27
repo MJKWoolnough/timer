@@ -9,7 +9,7 @@ import (
 	"github.com/BurntSushi/xgb/screensaver"
 	"github.com/MJKWoolnough/engine"
 	_ "github.com/MJKWoolnough/engine/graphics/gles2"
-	_ "github.com/MJKWoolnough/engine/windows/glfw32"
+	_ "github.com/MJKWoolnough/engine/windows/sdl"
 	"github.com/go-gl/gl/v3.1/gles2"
 )
 
@@ -196,9 +196,6 @@ func displayDigit(p int, offsetX float32) {
 			gles2.EnableVertexAttribArray(0)
 
 			gles2.DrawArrays(gles2.TRIANGLE_STRIP, 0, int32(len(vertices)))
-			//gles2.DrawArrays(gles2.TRIANGLE_STRIP, int32(t)%4, 3)
 		}
 	}
 }
-
-//http://blog.db-in.com/all-about-opengl-es-2-x-part-2/
