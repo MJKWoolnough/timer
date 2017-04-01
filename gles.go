@@ -120,14 +120,15 @@ type Bar struct {
 
 type XY [2]float32
 
-func render(w, h int, t float64) {
+func render(w, h int, t int) {
 	gles2.Clear(gles2.COLOR_BUFFER_BIT)
 
+	r := float32(w) / float32(h)
 	gles2.Uniform2f(sid, scale[0], scale[1]*r)
 
 	gap := bWidth + tWidth + 1
 
-	sec := int(t) % (360000)
+	sec := t % (360000)
 
 	hours := sec / 3600
 	minutes := sec / 60 % 60
