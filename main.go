@@ -49,14 +49,15 @@ func run() error {
 
 var last = -1
 
-func loop(w, h int, t float64) {
+func loop(w, h int, t float64) bool {
 	if engine.KeyPressed(engine.KeyEscape) {
 		engine.Close()
-		return
+		return false
 	}
 	s := int(t)
 	if s != last {
 		render(w, h, s)
 		last = s
 	}
+	return true
 }
